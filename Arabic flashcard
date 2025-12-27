@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arabic Flashcards</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #782e43;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.card {
+  background: white;
+  width: 360px;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+h2 {
+  font-size: 26px;
+}
+
+.flip {
+  font-size: 20px;
+  margin: 15px 0;
+  cursor: pointer;
+}
+
+.options button, input, textarea {
+  width: 100%;
+  margin: 6px 0;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+}
+
+.options button {
+  background: #e9ecef;
+  cursor: pointer;
+}
+
+.correct { background: #28a745 !important; color: white; }
+.wrong { background: #dc3545 !important; color: white; }
+
+.controls button {
+  margin: 6px;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.score {
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.add-box {
+  margin-top: 15px;
+  border-top: 1px solid #ddd;
+  padding-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+  <h2 id="front"></h2>
+  <div class="flip" onclick="flipCard()">🔄 <span id="back"></span></div>
+
+  <div class="options" id="options"></div>
+
+  <div class="score">Score: <span id="score">0</span></div>
+
+  <div class="controls">
+    <button onclick="toggleLang()">🌍 Language</button>
+    <button onclick="toggleMode()">🃏 Mode</button>
+    <button onclick="nextCard()">➡️ Next</button>
+  </div>
+
+  <div class="add-box">
+    <h3>Add New Card ➕</h3>
+    <input id="newWord" placeholder="Arabic word">
+    <input id="newAnswer" placeholder="English meaning">
+    <textarea id="newOptions" placeholder="Options (comma separated)"></textarea>
+    <button onclick="addCard()">Save</button>
+  </div>
+
+</div>
+
+<script>
+let cards = JSON.parse(localStorage.getItem("cards")) || [
+  { ar: "وَالذَّارِيَاتِ", en: "The winds", options: ["The winds","The angels","The ships","The clouds"] },
+  { ar: "ذَرْوًا", en: "Scattering dust", options: ["Heavy rain","Scattering dust","Easy movement","A promise"] },
+  { ar: "فَالْحَامِلَاتِ", en: "The clouds", options: ["The ships","The angels","The clouds","The winds"] },
+  { ar: "وِقْرًا", en: "Heavy load of water", options: ["Light rain","Heavy load of water","Adornment","Speed"] }
+];
+
+let index = 0;
+let flipped = false;
+let score = 0;
+let showArabic = true;
+let mcqMode = true;
+
+shuffle(cards);
+showCard();
+
+function shuffle(arr){
+  arr.sort(() => Math.random() - 0.5);
+}
+
+function showCard(){
+  flipped = false;
+  document.getElementById("back").innerText = "";
+  document.getElementById("front").innerText =
+    showArabic ? cards[index].ar : cards[index].en;
+
+  const optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+
+  if(mcqMode){
+    cards[index].options.forEach(opt => {
+      let btn = document.createElement("button");
+      btn.innerText = opt;
+      btn.onclick = () => checkAnswer(btn,opt);
+      optionsDiv.appendChild(btn);
+    });
+  }
+}
+
+function checkAnswer(btn, opt){
+  if(opt === cards[index].en){
+    btn.classList.add("correct");
+    score++;
+  } else {
+    btn.classList.add("wrong");
+  }
+  document.getElementById("score").innerText = score;
+}
+
+function flipCard(){
+  flipped = !flipped;
+  document.getElementById("back").innerText =
+    flipped ? (showArabic ? cards[index].en : cards[index].ar) : "";
+}
+
+function nextCard(){
+  index = (index + 1) % cards.length;
+  showCard();
+}
+
+function toggleLang(){
+  showArabic = !showArabic;
+  showCard();
+}
+
+function toggleMode(){
+  mcqMode = !mcqMode;
+  showCard();
+}
+
+function addCard(){
+  let ar = document.getElementById("newWord").value;
+  let en = document.getElementById("newAnswer").value;
+  let options = document.getElementById("newOptions").value.split(",");
+
+  if(ar && en && options.length >= 2){
+    cards.push({ ar, en, options });
+    localStorage.setItem("cards", JSON.stringify(cards));
+    alert("Saved ✅");
+  }
+}
+</script>
+
+</body>
+</html>
